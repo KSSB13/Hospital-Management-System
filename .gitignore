@@ -8,49 +8,39 @@
 
 using namespace std;
 
-// Patient structure
+// Patient Details
 struct Patient {
     string name;
-    string uniqueID; // Unique identifier for patients
-    string problem; // The health issue the patient is facing
-    string bloodGroup; // Blood group information
-    string pastMedicalRecords; // Past medical records
-    string phoneNumber; // Phone number
-    string emergencyContact1; // Emergency contact number 1
-    string emergencyContact2; // Emergency contact number 2
+    string uniqueID;
+    string problem;
+    string bloodGroup;
+    string pastMedicalRecords;
+    string phoneNumber;
+    string emergencyContact1;
+    string emergencyContact2;
 };
 
-// Doctor structure
+// Doctor Details
 struct Doctor {
     string name;
-    string specialization; // Include specialization information
+    string specialization;
 };
-
-// Define a Red-Black Tree for patient records
 map<string, Patient> patientRecords;
-
-// Define a Red-Black Tree for doctor records
 map<string, Doctor> doctorRecords;
 
-// Define a doubly-linked list for appointments
 struct Appointment {
     string patientID;
     string doctorID;
     string date;
     string time;
-    string problem; // Include health problem in the appointment
+    string problem;
     Appointment* prev;
     Appointment* next;
 };
 list<Appointment> appointments;
-
-// Define a hash table for doctor specializations
 map<string, set<string>> specializationToDoctors;
-
-// Define a queue for appointment requests
 queue<pair<string, string>> appointmentRequests;
 
-// Function to save patient data to a file
 void savePatientDataToFile() {
     ofstream outFile("C:\\Users\\solva\\Desktop\\Cpp project\\patient_data.txt");
     if (!outFile) {
@@ -72,8 +62,6 @@ void savePatientDataToFile() {
         cout << "Patient data saved to 'C:\\Users\\solva\\Desktop\\Cpp project\\patient_data.txt'." << endl;
     }
 }
-
-// Function to load patient data from a file
 void loadPatientDataFromFile() {
     ifstream inFile("C:\\Users\\solva\\Desktop\\Cpp project\\patient_data.txt");
     if (!inFile) {
@@ -107,8 +95,6 @@ void loadPatientDataFromFile() {
 
     inFile.close();
 }
-
-// Function to search for a patient by name
 void searchPatientByName() {
     string searchName;
     cout << "Enter the name of the patient to search for: ";
@@ -129,24 +115,20 @@ void searchPatientByName() {
 }
 
 int main() {
-    // Load patient data from the existing file at the start
     loadPatientDataFromFile();
 
-    // Initialize some doctors and their specializations
     Doctor doctor1{"Dr. Narayana Murthi", "Cardiologist"};
     Doctor doctor2{"Dr. Gowtham", "Dermatologist"};
     Doctor doctor3{"Dr. Nithin", "Cardiologist"};
     Doctor doctor4{"Dr. Vimal Kumar", ""};
     Doctor doctor5{"Dr. Badhri", "Orthopedic"};
 
-    // Insert doctors into the doctorRecords map
     doctorRecords["1"] = doctor1;
     doctorRecords["2"] = doctor2;
     doctorRecords["3"] = doctor3;
     doctorRecords["4"] = doctor4;
     doctorRecords["5"] = doctor5;
 
-    // Populate the specializationToDoctors map
     for (const auto& entry : doctorRecords) {
         specializationToDoctors[entry.second.specialization].insert(entry.first);
     }
@@ -167,12 +149,11 @@ int main() {
 
         switch (choice) {
             case 1: {
-                // Register Patient
                 Patient newPatient;
                 cout << "Enter patient name: ";
                 cin.ignore();
                 getline(cin, newPatient.name);
-                newPatient.uniqueID = "P" + to_string(patientRecords.size() + 1); // Generate a unique ID
+                newPatient.uniqueID = "P" + to_string(patientRecords.size() + 1); 
                 cout << "Enter the health issue: ";
                 getline(cin, newPatient.problem);
                 cout << "Enter blood group: ";
@@ -187,13 +168,11 @@ int main() {
                 getline(cin, newPatient.emergencyContact2);
                 patientRecords[newPatient.uniqueID] = newPatient;
 
-                // Display the unique ID after registration
                 cout << "Patient registered successfully. Unique ID: " << newPatient.uniqueID << endl;
                 break;
             }
 
             case 2: {
-                // Schedule Appointment
                 string patientID, date, time;
                 cout << "Enter patient unique ID: ";
                 cin >> patientID;
@@ -242,7 +221,6 @@ int main() {
             }
 
             case 3: {
-                // Retrieve Patient Data
                 string patientID;
                 cout << "Enter patient unique ID: ";
                 cin >> patientID;
@@ -262,25 +240,21 @@ int main() {
             }
 
             case 4: {
-                // Save Patient Data to File
                 savePatientDataToFile();
                 break;
             }
 
             case 5: {
-                // Load Patient Data from File
                 loadPatientDataFromFile();
                 break;
             }
 
             case 6: {
-                // Search Patient by Name
                 searchPatientByName();
                 break;
             }
 
             case 7: {
-                // Exit
                 cout << "Exiting the Hospital Management System." << endl;
                 return 0;
             }
