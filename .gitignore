@@ -1,32 +1,294 @@
-# Prerequisites
-*.d
+#include <iostream>
+#include <string>
+#include <map>
+#include <set>
+#include <list>
+#include <queue>
+#include <fstream>
 
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
+using namespace std;
 
-# Precompiled Headers
-*.gch
-*.pch
+// Patient structure
+struct Patient {
+    string name;
+    string uniqueID; // Unique identifier for patients
+    string problem; // The health issue the patient is facing
+    string bloodGroup; // Blood group information
+    string pastMedicalRecords; // Past medical records
+    string phoneNumber; // Phone number
+    string emergencyContact1; // Emergency contact number 1
+    string emergencyContact2; // Emergency contact number 2
+};
 
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
+// Doctor structure
+struct Doctor {
+    string name;
+    string specialization; // Include specialization information
+};
 
-# Fortran module files
-*.mod
-*.smod
+// Define a Red-Black Tree for patient records
+map<string, Patient> patientRecords;
 
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
+// Define a Red-Black Tree for doctor records
+map<string, Doctor> doctorRecords;
 
-# Executables
-*.exe
-*.out
-*.app
+// Define a doubly-linked list for appointments
+struct Appointment {
+    string patientID;
+    string doctorID;
+    string date;
+    string time;
+    string problem; // Include health problem in the appointment
+    Appointment* prev;
+    Appointment* next;
+};
+list<Appointment> appointments;
+
+// Define a hash table for doctor specializations
+map<string, set<string>> specializationToDoctors;
+
+// Define a queue for appointment requests
+queue<pair<string, string>> appointmentRequests;
+
+// Function to save patient data to a file
+void savePatientDataToFile() {
+    ofstream outFile("C:\\Users\\solva\\Desktop\\Cpp project\\patient_data.txt");
+    if (!outFile) {
+        cout << "Error: Unable to open the file for writing." << endl;
+        return;
+    }
+
+    for (const auto& entry : patientRecords) {
+        outFile << entry.second.name << " " << entry.second.uniqueID << " "
+                << entry.second.problem << " " << entry.second.bloodGroup << " "
+                << entry.second.pastMedicalRecords << " " << entry.second.phoneNumber << " "
+                << entry.second.emergencyContact1 << " " << entry.second.emergencyContact2 << endl;
+    }
+
+    outFile.close();
+    if (outFile.fail()) {
+        cout << "Error: Failed to write data to the file." << endl;
+    } else {
+        cout << "Patient data saved to 'C:\\Users\\solva\\Desktop\\Cpp project\\patient_data.txt'." << endl;
+    }
+}
+
+// Function to load patient data from a file
+void loadPatientDataFromFile() {
+    ifstream inFile("C:\\Users\\solva\\Desktop\\Cpp project\\patient_data.txt");
+    if (!inFile) {
+        cout << "Error: Unable to open the file for reading." << endl;
+        return;
+    }
+
+    patientRecords.clear();  // Clear the existing patient records
+
+    string name, uniqueID, problem, bloodGroup, pastMedicalRecords, phoneNumber, emergencyContact1, emergencyContact2;
+    while (inFile >> name >> uniqueID >> problem >> bloodGroup >> pastMedicalRecords >> phoneNumber >> emergencyContact1 >> emergencyContact2) {
+        Patient patient;
+        patient.name = name;
+        patient.uniqueID = uniqueID;
+        patient.problem = problem;
+        patient.bloodGroup = bloodGroup;
+        patient.pastMedicalRecords = pastMedicalRecords;
+        patient.phoneNumber = phoneNumber;
+        patient.emergencyContact1 = emergencyContact1;
+        patient.emergencyContact2 = emergencyContact2;
+        patientRecords[uniqueID] = patient;
+    }
+
+    if (inFile.eof()) {
+        cout << "Patient data loaded from 'C:\\Users\\solva\\Desktop\\Cpp project\\patient_data.txt'." << endl;
+    } else if (inFile.fail()) {
+        cout << "Error: Failed to read data from the file due to formatting issues." << endl;
+    } else {
+        cout << "Error: An unknown error occurred while reading the file." << endl;
+    }
+
+    inFile.close();
+}
+
+// Function to search for a patient by name
+void searchPatientByName() {
+    string searchName;
+    cout << "Enter the name of the patient to search for: ";
+    cin.ignore();
+    getline(cin, searchName);
+
+    bool found = false;
+    for (const auto& entry : patientRecords) {
+        if (entry.second.name == searchName) {
+            cout << "Patient found with unique ID: " << entry.first << endl;
+            found = true;
+        }
+    }
+
+    if (!found) {
+        cout << "No patient found with the given name." << endl;
+    }
+}
+
+int main() {
+    // Load patient data from the existing file at the start
+    loadPatientDataFromFile();
+
+    // Initialize some doctors and their specializations
+    Doctor doctor1{"Dr. Narayana Murthi", "Cardiologist"};
+    Doctor doctor2{"Dr. Gowtham", "Dermatologist"};
+    Doctor doctor3{"Dr. Nithin", "Cardiologist"};
+    Doctor doctor4{"Dr. Vimal Kumar", ""};
+    Doctor doctor5{"Dr. Badhri", "Orthopedic"};
+
+    // Insert doctors into the doctorRecords map
+    doctorRecords["1"] = doctor1;
+    doctorRecords["2"] = doctor2;
+    doctorRecords["3"] = doctor3;
+    doctorRecords["4"] = doctor4;
+    doctorRecords["5"] = doctor5;
+
+    // Populate the specializationToDoctors map
+    for (const auto& entry : doctorRecords) {
+        specializationToDoctors[entry.second.specialization].insert(entry.first);
+    }
+
+    while (true) {
+        cout << "Hospital Management System Menu:" << endl;
+        cout << "1. Register Patient" << endl;
+        cout << "2. Schedule Appointment" << endl;
+        cout << "3. Retrieve Patient Data" << endl;
+        cout << "4. Save Patient Data to File" << endl;
+        cout << "5. Load Patient Data from File" << endl;
+        cout << "6. Search Patient by Name" << endl;
+        cout << "7. Exit" << endl;
+        cout << "Enter your choice: ";
+
+        int choice;
+        cin >> choice;
+
+        switch (choice) {
+            case 1: {
+                // Register Patient
+                Patient newPatient;
+                cout << "Enter patient name: ";
+                cin.ignore();
+                getline(cin, newPatient.name);
+                newPatient.uniqueID = "P" + to_string(patientRecords.size() + 1); // Generate a unique ID
+                cout << "Enter the health issue: ";
+                getline(cin, newPatient.problem);
+                cout << "Enter blood group: ";
+                getline(cin, newPatient.bloodGroup);
+                cout << "Enter past medical records: ";
+                getline(cin, newPatient.pastMedicalRecords);
+                cout << "Enter phone number: ";
+                getline(cin, newPatient.phoneNumber);
+                cout << "Enter emergency contact 1: ";
+                getline(cin, newPatient.emergencyContact1);
+                cout << "Enter emergency contact 2: ";
+                getline(cin, newPatient.emergencyContact2);
+                patientRecords[newPatient.uniqueID] = newPatient;
+
+                // Display the unique ID after registration
+                cout << "Patient registered successfully. Unique ID: " << newPatient.uniqueID << endl;
+                break;
+            }
+
+            case 2: {
+                // Schedule Appointment
+                string patientID, date, time;
+                cout << "Enter patient unique ID: ";
+                cin >> patientID;
+
+                // Check if the patient exists in the records
+                if (patientRecords.find(patientID) != patientRecords.end()) {
+                    cout << "Available doctors for appointment based on specialization:" << endl;
+                    const string& patientSpecialization = patientRecords[patientID].problem;
+
+                    if (specializationToDoctors.find(patientSpecialization) != specializationToDoctors.end()) {
+                        for (const string& doctorID : specializationToDoctors[patientSpecialization]) {
+                            cout << doctorRecords[doctorID].name << " (" << doctorID << ")" << endl;
+                        }
+                        cout << "Enter doctor ID for the appointment: ";
+                        string doctorID;
+                        cin >> doctorID;
+                        cout << "Enter appointment date: ";
+                        cin >> date;
+                        cout << "Enter appointment time: ";
+                        cin >> time;
+
+                        // Check if the selected doctor is available
+                        if (doctorRecords.find(doctorID) != doctorRecords.end()) {
+                            // Create a new appointment
+                            Appointment newAppointment;
+                            newAppointment.patientID = patientID;
+                            newAppointment.doctorID = doctorID;
+                            newAppointment.date = date;
+                            newAppointment.time = time;
+                            newAppointment.problem = patientSpecialization;
+
+                            // Insert the appointment into the doubly-linked list
+                            appointments.push_back(newAppointment);
+
+                            cout << "Appointment scheduled successfully." << endl;
+                        } else {
+                            cout << "Doctor not found. Please check the ID." << endl;
+                        }
+                    } else {
+                        cout << "No doctors available for the specified specialization." << endl;
+                    }
+                } else {
+                    cout << "Patient not found. Please check the ID." << endl;
+                }
+                break;
+            }
+
+            case 3: {
+                // Retrieve Patient Data
+                string patientID;
+                cout << "Enter patient unique ID: ";
+                cin >> patientID;
+                if (patientRecords.find(patientID) != patientRecords.end()) {
+                    cout << "Patient Name: " << patientRecords[patientID].name << endl;
+                    cout << "Unique ID: " << patientRecords[patientID].uniqueID << endl;
+                    cout << "Health Issue: " << patientRecords[patientID].problem << endl;
+                    cout << "Blood Group: " << patientRecords[patientID].bloodGroup << endl;
+                    cout << "Past Medical Records: " << patientRecords[patientID].pastMedicalRecords << endl;
+                    cout << "Phone Number: " << patientRecords[patientID].phoneNumber << endl;
+                    cout << "Emergency Contact 1: " << patientRecords[patientID].emergencyContact1 << endl;
+                    cout << "Emergency Contact 2: " << patientRecords[patientID].emergencyContact2 << endl;
+                } else {
+                    cout << "Patient not found." << endl;
+                }
+                break;
+            }
+
+            case 4: {
+                // Save Patient Data to File
+                savePatientDataToFile();
+                break;
+            }
+
+            case 5: {
+                // Load Patient Data from File
+                loadPatientDataFromFile();
+                break;
+            }
+
+            case 6: {
+                // Search Patient by Name
+                searchPatientByName();
+                break;
+            }
+
+            case 7: {
+                // Exit
+                cout << "Exiting the Hospital Management System." << endl;
+                return 0;
+            }
+
+            default:
+                cout << "Invalid choice. Please select a valid option." << endl;
+        }
+    }
+
+    return 0;
+}
